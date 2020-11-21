@@ -1,100 +1,102 @@
-class Board
-  @@win_conditions = [ [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6] ]
-  def initialize
-    @grids = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
-  end
-
-  def show_board
-    puts ""
-    puts "-------------------"
-    puts "|  #{@grids[0]}  |  #{@grids[1]}  |  #{@grids[2]}  |    0      1      2"
-    puts "-------------------"
-    puts "|  #{@grids[3]}  |  #{@grids[4]}  |  #{@grids[5]}  |    3      4      5      <--- ID's for the grids"
-    puts "-------------------"
-    puts "|  #{@grids[6]}  |  #{@grids[7]}  |  #{@grids[8]}  |    6      7      8"
-    puts "-------------------"
-    puts ""
-  end
-  
-  def update_grid(mark, grid_id)
-    @grids[grid_id] = mark
-  end
-  
-  def is_full?
-    @grids.all? { |grid| grid != " "}
-  end
-
-  def grid_taken?(grid_id)
-    @grids[grid_id] != " "
-  end
-
-  def win_conditions
-    @@win_conditions
-  end
-end
-
 class Player
-  attr_reader :mark, :name, :moves
-  def initialize(name, mark)
-    @name = name
-    @mark = mark
-    @moves = []
+  attr_reader :name, :sign 
+  def initialize(name, sign)
+    @name = name 
+    @sign = sign
+  end 
+end     
+
+class TicTacToe
+  def initialize
+    print "Type in name for player1: "; player1_name = gets.chomp
+    print "Type in sign for player1: "
+    player1_sign = gets.chomp; player1_sign = player1_sign.split("").shift # make sure its only one sign
+        
+    print "Type in name for player2: "; player2_name = gets.chomp
+    print "Type in sign for player2: "
+    player2_sign = gets.chomp; player2_sign = player2_sign.split("").shift # make sure its only one sign
+
+    @players = [Player.new(player1_name, player1_sign), Player.new(player2_name, player2_sign)]
+    @board_grids = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
+  end 
+
+  def show_board 
+    puts 
+    puts "-------------"
+    puts "| #{@board_grids[0]} | #{@board_grids[1]} | #{@board_grids[2]} | "
+    puts "-------------"
+    puts "| #{@board_grids[3]} | #{@board_grids[4]} | #{@board_grids[5]} | "
+    puts "-------------"
+    puts "| #{@board_grids[6]} | #{@board_grids[7]} | #{@board_grids[8]} | "
+    puts "-------------"
+    puts 
+  end 
+
+  def reset_board
+    @board_grids = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
+  end 
+
+  def win?(player)
+    (@board_grids[0] == player.sign && @board_grids[1] == player.sign && @board_grids[2] == player.sign) ||
+    (@board_grids[3] == player.sign && @board_grids[4] == player.sign && @board_grids[5] == player.sign) ||
+    (@board_grids[6] == player.sign && @board_grids[7] == player.sign && @board_grids[8] == player.sign) ||
+    (@board_grids[0] == player.sign && @board_grids[3] == player.sign && @board_grids[6] == player.sign) ||
+    (@board_grids[1] == player.sign && @board_grids[4] == player.sign && @board_grids[7] == player.sign) ||
+    (@board_grids[2] == player.sign && @board_grids[5] == player.sign && @board_grids[8] == player.sign) ||
+    (@board_grids[0] == player.sign && @board_grids[4] == player.sign && @board_grids[8] == player.sign) ||
+    (@board_grids[2] == player.sign && @board_grids[4] == player.sign && @board_grids[6] == player.sign)
+  end 
+
+  def choose_grid
+    print "Choose your grid: (0 to 8, left to right): "
+    grid_id = gets; grid_id = grid_id.to_i
+    if @board_grids[grid_id] != " " || grid_id < 0 || grid_id > 8
+      return choose_grid 
+    else
+      return grid_id
+    end 
   end
 
-  def check_for_win
-      @moves.include?(0) && @moves.include?(1) && @moves.include?(2) || 
-      @moves.include?(3) && @moves.include?(4) && @moves.include?(5) ||
-      @moves.include?(6) && @moves.include?(7) && @moves.include?(8) || 
-      @moves.include?(0) && @moves.include?(3) && @moves.include?(6) ||
-      @moves.include?(1) && @moves.include?(4) && @moves.include?(7) ||
-      @moves.include?(2) && @moves.include?(5) && @moves.include?(8) ||
-      @moves.include?(0) && @moves.include?(4) && @moves.include?(8) ||
-      @moves.include?(2) && @moves.include?(4) && @moves.include?(6) # if @moves includes these grid ids the player wins
+  def update_grid(grid_id, sign)
+    @board_grids[grid_id] = sign
+  end 
+
+  def board_full?
+    @board_grids.all? { |grid| grid != " "}
+  end 
+
+  def start
+    puts "Choosing random player..."
+    starting_player = @players.sample
+    puts "The starting player is #{starting_player.name}"
+    puts "Lets begin!"
+    play_round(starting_player)
   end
+
+  def play_round(player)
+    show_board
+    
+    puts "Current player: #{player.name} (#{player.sign})"
+
+    update_grid(choose_grid, player.sign)
+
+    if win?(player)
+      show_board
+      puts "#{player.name} (#{player.sign}) wins this game!"
+      reset_board
+      print "Would you like to play again? (yes, no): "; play_again = gets.chomp
+      return play_again == "yes" ? start : 0
+    elsif board_full?
+      show_board
+      reset_board
+      print "It's a draw! Would you like to play again? (yes, no): "; play_again = gets.chomp
+      return play_again == "yes" ? start : 0
+    else
+      play_round(@players[@players.index(player)-1]) # play a round as the other player
+    end 
+  end 
 end
 
-def game
-  print "Player One name: "; player1_name = gets.chomp
-  player1 = Player.new(player1_name, "X")
-
-  print "Player Two name: "; player2_name = gets.chomp
-  player2 = Player.new(player2_name, "O")
-
-  board = Board.new
-
-  def choose_grid(player, board)
-    print "Type in the id of your grid of choice, #{player.name} (#{player.mark}): "; grid_id = gets
-    grid_id = grid_id.to_i
-
-    if grid_id > 8 || board.grid_taken?(grid_id)
-      puts "That grid is unavailable."
-      choose_grid(player, board)
-    else
-      board.update_grid(player.mark, grid_id)
-      player.moves << grid_id
-    end
-  end
-
-  puts "\nNOTE: Typing in a string will default to 0"
-
-  tries = 0
-  until board.is_full? || player1.check_for_win || player2.check_for_win
-    board.show_board
-    choose_grid(player1, board) if tries.even?
-    choose_grid(player2, board) if tries.odd?
-    tries += 1
-
-    if player1.check_for_win
-      board.show_board
-      puts "#{player1.name} (#{player1.mark}) wins!"
-    elsif player2.check_for_win
-      board.show_board
-      puts "#{player2.name} (#{player2.mark}) wins!"
-    else
-      board.show_board
-      puts "It's a draw"
-    end
-  end
-end
-
-game
+game = TicTacToe.new
+puts ""
+game.start
