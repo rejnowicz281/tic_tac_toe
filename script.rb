@@ -9,12 +9,14 @@ end
 class TicTacToe
   def initialize
     print "Type in name for player1: "; player1_name = gets.chomp
-    print "Type in sign for player1: "
-    player1_sign = gets.chomp; player1_sign = player1_sign.split("").shift # make sure its only one sign
+    print "Type in sign for player1: "; player1_sign = choose_sign
         
     print "Type in name for player2: "; player2_name = gets.chomp
-    print "Type in sign for player2: "
-    player2_sign = gets.chomp; player2_sign = player2_sign.split("").shift # make sure its only one sign
+    print "Type in sign for player2: " 
+    player2_sign = choose_sign
+    while player2_sign == player1_sign
+      print "You can't have the same signs. Choose another one: "; player2_sign = choose_sign
+    end 
 
     @players = [Player.new(player1_name, player1_sign), Player.new(player2_name, player2_sign)]
     @board_grids = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
@@ -32,8 +34,23 @@ class TicTacToe
     puts 
   end 
 
+  def start
+    puts "Choosing random player..."
+    starting_player = @players.sample
+    puts "The starting player is #{starting_player.name}"
+    puts "Lets begin!"
+    play_round(starting_player)
+  end
+
+  private
   def reset_board
     @board_grids = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
+  end 
+
+  def choose_sign
+    sign = gets.chomp 
+    sign = sign.split("").shift # make sure its only one element
+    sign
   end 
 
   def win?(player)
@@ -64,14 +81,6 @@ class TicTacToe
   def board_full?
     @board_grids.all? { |grid| grid != " "}
   end 
-
-  def start
-    puts "Choosing random player..."
-    starting_player = @players.sample
-    puts "The starting player is #{starting_player.name}"
-    puts "Lets begin!"
-    play_round(starting_player)
-  end
 
   def play_round(player)
     show_board
